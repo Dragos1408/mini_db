@@ -32,8 +32,57 @@ int da_get(const DynArray *arr, size_t index) {
 
 void da_free(DynArray *arr) {
     free(arr->data);
-    arr->data = NULL;
-    arr->size = 0;
-    arr->capacity = 0;
+}
+
+void da_save(const DynArray *arr, const char *filename){
+	FILE *file = fopen(filename, "wb");
+	if(!file){
+		perror("Error openin file");
+		return;
+}
+	fwrite(&arr->size, sizeof(size_t), 1 ,file);
+	fwrite(arr->data, sizeof(int), arr->size, file);
+	fclose(file);
+}
+
+void da_load(DynArray *arr, const char *filename){
+	FILE *file= fopen(filename, "rb");
+	if(!file){
+		perror("Error opening file");
+		return;
+}
+	fread(&arr->size, sizeof(size_t), 1, file);
+	arr->capacity = arr->size;
+	arr->data = malloc(arr->capacity * sizeof(int));
+	fread(arr->data, sizeof(int), arr->size, file);
+	fclose(file);
+}
+
+void da_save_text(const DynArray *arr, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+    fprintf(file, "%zu\n", arr->size);  // Save size as text
+    for (size_t i = 0; i < arr->size; i++) {
+        fprintf(file, "%d\n", arr->data[i]);  // Save each int as text
+    }
+    fclose(file);
+}
+
+void da_load_text(DynArray *arr, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+    fscanf(file, "%zu", &arr->size);
+    arr->capacity = arr->size;
+    arr->data = malloc(arr->capacity * sizeof(int));
+    for (size_t i = 0; i < arr->size; i++) {
+        fscanf(file, "%d", &arr->data[i]);
+    }
+    fclose(file);
 }
 
